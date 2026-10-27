@@ -102,10 +102,30 @@ before(async () => {
   await waitHealthy(`${TRANSKRIP}/health`).catch(() => {});
 });
 
-after(() => {
-  for (const p of procs) p.kill();
+after(async () => {
+  await Promise.all(
+    procs.map(
+      (p) =>
+        new Promise((resolve) => {
+          if (p.exitCode !== null) return resolve();
+          const timer = setTimeout(resolve, 3000);
+          timer.unref();
+          p.once('exit', () => { clearTimeout(timer); resolve(); });
+          p.kill();
+        })
+    )
+  );
   try { db.close(); } catch { /* ignore */ }
-  fs.rmSync(tmp, { recursive: true, force: true });
+  // Windows: handle file SQLite/proses bisa belum dilepas tepat setelah exit -> coba ulang.
+  for (let i = 0; ; i++) {
+    try {
+      fs.rmSync(tmp, { recursive: true, force: true });
+      return;
+    } catch (err) {
+      if (i >= 19) throw err;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  }
 });
 
 // ---------- Autentikasi ----------
