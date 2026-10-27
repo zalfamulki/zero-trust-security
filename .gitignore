@@ -4,3 +4,8 @@ data/
 *.db
 *.db-wal
 *.db-shm
+*.log
+
+# Dokumen tugas (tidak di-push)
+tugas praktikum zero trust.pdf
+tugas praktikum zero trust.docx
