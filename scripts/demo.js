@@ -2,6 +2,8 @@
 //   npm run demo          -> seluruh skenario (jalankan setelah: npm run seed && npm start)
 //   npm run demo -- jam   -> hanya uji jam akses (set ACCESS_START=00:00 ACCESS_END=00:00 di .env, restart gateway)
 const { loadConfig } = require('../shared/config');
+const { openDb } = require('../shared/db');
+const { withinAccessHours } = require('../shared/time');
 const { DEMO_USERS } = require('../shared/seed');
 
 const config = loadConfig();
@@ -33,6 +35,107 @@ function show(title, expectStatus, res, extra = '') {
 }
 
 const section = (t) => console.log(`\n${c.b}== ${t} ==${c.r}`);
+
+// Memeriksa kondisi awal sebelum demo. Jika prasyarat tidak terpenuhi, demo dihentikan
+// dengan instruksi yang jelas, bukan mencetak skenario GAGAL yang membingungkan.
+function preflight(mode) {
+  let db;
+  try {
+    db = openDb(config.dbPath);
+  } catch (err) {
+    console.log(`\n${c.bad}Database tidak dapat dibuka.${c.r} ${err.message}`);
+    console.log('Hentikan server, jalankan "npm run seed", lalu "npm start".');
+    return false;
+  }
+
+  let seeded = false;
+  let siap = false;
+  try {
+    seeded = Boolean(
+      db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").get()
+    );
+    if (seeded) {
+      // Demo membutuhkan kondisi seed: kelas 1 punya nilai belum final, kelas 3 sudah final,
+      // kelas 2 tersedia, dan transkrip awal mhs1 ada. Pemeriksaan ini menangkap kondisi
+      // setelah demo dijalankan tanpa seed ulang, walaupun kelas lain masih belum final.
+      const kelas = db
+        .prepare(
+          `SELECT c.course_code,
+                  COUNT(g.id) AS total,
+                  SUM(CASE WHEN g.is_final = 0 THEN 1 ELSE 0 END) AS belum_final,
+                  SUM(CASE WHEN g.is_final = 1 THEN 1 ELSE 0 END) AS sudah_final
+             FROM classes c
+             LEFT JOIN grades g ON g.class_id = c.id
+            GROUP BY c.id`
+        )
+        .all();
+      const byCode = Object.fromEntries(kelas.map((k) => [k.course_code, k]));
+      const transkrip = db
+        .prepare(
+          `SELECT COUNT(*) AS n
+             FROM transcripts t JOIN users u ON u.id = t.student_id
+            WHERE u.nim = '227006001'`
+        )
+        .get().n;
+      siap = Boolean(
+        byCode.KP70065004 &&
+          byCode.KP70065004.belum_final > 0 &&
+          byCode.KP70011001 &&
+          byCode.KP70011001.sudah_final > 0 &&
+          byCode.KP70012003 &&
+          byCode.KP70012003.total > 0 &&
+          transkrip > 0
+      );
+    }
+  } finally {
+    db.close();
+  }
+
+  if (!seeded) {
+    console.log(`\n${c.bad}Database belum di-seed.${c.r}`);
+    console.log('Hentikan server, jalankan "npm run seed", lalu "npm start".');
+    return false;
+  }
+
+  if (!siap) {
+    console.log(`\n${c.bad}Data demo belum dalam kondisi awal.${c.r}`);
+    console.log(
+      'Diperlukan: kelas KP70065004 memiliki nilai belum final, KP70011001 sudah final, KP70012003 tersedia, dan transkrip awal mhs1 ada.'
+    );
+    console.log('Hentikan server (Ctrl+C), jalankan "npm run seed", lalu "npm start".');
+    return false;
+  }
+
+  const dalamJam = withinAccessHours(new Date(), config.access);
+
+  if (mode === 'jam') {
+    if (dalamJam) {
+      console.log(`\n${c.bad}Uji jam akses memerlukan jendela jam tertutup.${c.r}`);
+      console.log(
+        `Saat ini masih dalam jam akses ${config.access.start}-${config.access.end} (${config.access.timezone}).`
+      );
+      console.log(
+        'Hentikan server, set ACCESS_START=00:00 dan ACCESS_END=00:00 di .env, lalu jalankan "npm start".'
+      );
+      return false;
+    }
+    return true;
+  }
+
+  if (!dalamJam) {
+    console.log(
+      `\n${c.bad}Saat ini di luar jam akses ${config.access.start}-${config.access.end} (${config.access.timezone}).${c.r}`
+    );
+    console.log('Perubahan dan finalisasi nilai akan ditolak sehingga demo penuh tidak dapat berjalan.');
+    console.log(
+      'Untuk demo penuh, ubah .env menjadi ACCESS_START=00:00 dan ACCESS_END=24:00, lalu restart "npm start".'
+    );
+    console.log('Untuk menguji penolakan jam akses, gunakan "npm run demo -- jam" dengan jendela tertutup.');
+    return false;
+  }
+
+  return true;
+}
 
 async function login(name) {
   const u = user(name);
@@ -111,7 +214,9 @@ async function semua() {
 
 (async () => {
   try {
-    if (process.argv[2] === 'jam') await jamAkses();
+    const mode = process.argv[2] === 'jam' ? 'jam' : 'semua';
+    if (!preflight(mode)) return;
+    if (mode === 'jam') await jamAkses();
     else await semua();
   } catch (err) {
     console.error('Demo gagal. Pastikan server berjalan (npm start) dan database sudah di-seed:', err.message);
