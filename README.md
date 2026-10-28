@@ -141,7 +141,7 @@ Demo mengubah data: finalisasi pada folder `04` membuat kelas 1 menjadi final da
 2. `npm run seed`
 3. `npm start`
 
-`npm run demo` sekarang memeriksa kondisi awal. Jika database sudah final seluruhnya atau request berada di luar jam akses, skrip berhenti dengan instruksi reset—bukan menampilkan skenario GAGAL yang membingungkan.
+`npm run demo` sekarang memeriksa kondisi awal. Jika data demo tidak lagi dalam kondisi seed (misalnya kelas 1 sudah difinalisasi) atau request berada di luar jam akses, skrip berhenti dengan instruksi reset—bukan menampilkan skenario GAGAL yang membingungkan.
 
 ### Demo jam akses
 
