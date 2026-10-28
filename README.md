@@ -107,6 +107,24 @@ curl -s http://127.0.0.1:3001/nilai -H "X-Gateway-Secret: <GATEWAY_SECRET dari .
 
 Alternatif tanpa mengetik curl: `npm run demo` menjalankan seluruh skenario berhasil dan gagal beserta hasilnya (berguna untuk video).
 
+## Pengujian API dengan Postman
+
+Koleksi Postman siap impor tersedia di folder `postman/`:
+
+- `postman/Zero-Trust-Sistem-Nilai.postman_collection.json` — 56 request dalam 7 folder, dengan test otomatis.
+- `postman/Zero-Trust-Lokal.postman_environment.json` — URL lokal, token, ID dinamis, dan placeholder secret.
+- `postman/README.md` — langkah impor, urutan pengujian, dan penanganan masalah.
+
+Langkah singkat:
+
+1. Hentikan server, jalankan `npm run seed`, lalu `npm start`.
+2. Impor kedua berkas JSON ke Postman dan pilih environment **Zero Trust Lokal**.
+3. Isi `gateway_secret` dan `service_client_secret` pada environment dari `.env`. Kedua nilai tidak disimpan di repository.
+4. Jalankan Collection Runner untuk folder `00` sampai `05`. Folder `06` (jam akses) dijalankan terpisah saat jendela jam ditutup.
+5. Setelah selesai, hentikan server, `npm run seed`, lalu `npm start` untuk mengembalikan data demo.
+
+Token dan ID nilai diisi otomatis oleh test script. Rincian lengkap ada di `postman/README.md`.
+
 ## Pengujian
 
 ```bash
@@ -115,11 +133,21 @@ npm test
 
 27 tes otomatis: 5 tes unit (jam akses, zona waktu, pencocokan route) dan 22 tes integrasi yang menjalankan tiga proses nyata pada port 13000–13002 dengan database sementara. Tes mencakup seluruh matriks pengujian tugas (login berhasil/gagal, device salah, token tanpa/palsu/kedaluwarsa, refresh/logout, hak akses per role dan kepemilikan data, nilai final, jam akses, token service, finalisasi + sinkron lewat gateway, akses langsung ke service, secret benar tanpa token, dan isi audit log).
 
+### Sebelum demo
+
+Demo mengubah data: finalisasi pada folder `04` membuat kelas 1 menjadi final dan menambah baris transkrip. Selalu mulai dari kondisi segar:
+
+1. Hentikan server (`Ctrl+C`).
+2. `npm run seed`
+3. `npm start`
+
+`npm run demo` sekarang memeriksa kondisi awal. Jika database sudah final seluruhnya atau request berada di luar jam akses, skrip berhenti dengan instruksi reset—bukan menampilkan skenario GAGAL yang membingungkan.
+
 ### Demo jam akses
 
 1. Hentikan server. Di `.env` set `ACCESS_START=00:00` dan `ACCESS_END=00:00` (jendela tertutup).
-2. `npm start`, lalu `npm run demo -- jam` → ubah nilai dan finalisasi ditolak (403, alasan "di luar jam akses").
-3. Kembalikan `.env` ke `07:00`/`21:00` (atau `00:00`/`24:00`) dan jalankan ulang untuk skenario dalam jam akses.
+2. `npm start`, lalu jalankan folder `06 — Jam Akses` pada Postman (set `uji_jam_akses=true`), atau `npm run demo -- jam` → ubah nilai dan finalisasi ditolak (403, alasan "di luar jam akses").
+3. Kembalikan `.env` ke `07:00`/`21:00` (atau `00:00`/`24:00`), set `uji_jam_akses=false`, lalu jalankan ulang untuk skenario dalam jam akses.
 
 ## Audit log
 

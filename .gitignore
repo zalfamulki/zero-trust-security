@@ -9,3 +9,6 @@ data/
 # Dokumen tugas (tidak di-push)
 tugas praktikum zero trust.pdf
 tugas praktikum zero trust.docx
+
+# Salinan environment Postman dengan secret asli (jangan di-commit)
+postman/*.local.json
