@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "f3c1a7d2-5b64-4f0e-9a11-zero-trust-nilai",
+    "_postman_id": "b7c4e2a1-3f6d-4c8e-9a2b-5d1e7f0a9c3b",
     "name": "Zero Trust Sistem Nilai",
     "description": "Koleksi pengujian API Sistem Nilai dengan Zero Trust. Mencakup autentikasi dan token, kebijakan akses dan kepemilikan data, konteks device, transkrip, token service dan finalisasi, akses langsung ke service, serta jam akses. Prasyarat: server berjalan, database baru di-seed, dan environment Zero Trust Lokal sudah diisi. Urutan folder 00 sampai 05; folder 06 dijalankan terpisah saat jendela jam akses ditutup.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
