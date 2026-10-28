@@ -49,7 +49,9 @@ Jalankan **Collection Runner** dan pilih folder `00` sampai `05` secara beruruta
 | `05 — Akses Langsung ke Service` | Service tanpa secret, secret tanpa token, token salah jenis, health check | Service tidak dapat diakses langsung tanpa secret dan token yang sah |
 | `06 — Jam Akses` | Ubah nilai dan finalisasi di luar jam akses | Ditolak dengan alasan "di luar jam akses" |
 
-Pada versi ini, folder `00` sampai `05` menghasilkan **52 request** dan **117 assertion**. Semua harus berstatus hijau. Folder `06` dilewati otomatis selama `uji_jam_akses = false`.
+Pada versi ini, folder `00` sampai `05` menghasilkan **52 request** dan **115 assertion**. Semua harus berstatus hijau. Folder `06` dilewati otomatis selama `uji_jam_akses = false`.
+
+Jika `gateway_secret` atau `service_client_secret` belum diisi, request yang membutuhkannya akan dilewati dengan pesan pada Console, bukan gagal. Isi kedua nilai tersebut agar seluruh pengujian berjalan.
 
 Jika ingin menjalankan lewat terminal:
 
