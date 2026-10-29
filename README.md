@@ -146,8 +146,8 @@ Demo mengubah data: finalisasi pada folder `04` membuat kelas 1 menjadi final da
 ### Demo jam akses
 
 1. Hentikan server. Di `.env` set `ACCESS_START=00:00` dan `ACCESS_END=00:00` (jendela tertutup).
-2. `npm start`, lalu jalankan folder `06 — Jam Akses` pada Postman (set `uji_jam_akses=true`), atau `npm run demo -- jam` → ubah nilai dan finalisasi ditolak (403, alasan "di luar jam akses").
-3. Kembalikan `.env` ke `07:00`/`21:00` (atau `00:00`/`24:00`), set `uji_jam_akses=false`, lalu jalankan ulang untuk skenario dalam jam akses.
+2. `npm start`, lalu jalankan **hanya** folder `06 — Jam Akses` pada Postman, atau `npm run demo -- jam` → ubah nilai dan finalisasi ditolak (403, alasan "di luar jam akses").
+3. Kembalikan `.env` ke `07:00`/`21:00` (atau `00:00`/`24:00`), lalu jalankan ulang untuk skenario dalam jam akses.
 
 ## Audit log
 
