@@ -2248,20 +2248,7 @@
     },
     {
       "name": "06 — Jam Akses (jalankan terpisah)",
-      "description": "Folder ini hanya berjalan jika environment uji_jam_akses = true. Jalankan setelah server dijalankan dengan jendela jam akses tertutup (ACCESS_START=00:00 dan ACCESS_END=00:00), dan jalankan folder ini saja. Setelah selesai, kembalikan .env ke 07:00-21:00 dan set uji_jam_akses = false.",
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "if (pm.environment.get(\"uji_jam_akses\") !== \"true\") {",
-              "  pm.execution.skipRequest();",
-              "}"
-            ]
-          }
-        }
-      ],
+      "description": "Folder ini dijalankan manual, hanya saat jendela jam akses tertutup (ACCESS_START=00:00 dan ACCESS_END=00:00). Jangan dicentang saat menguji folder 00-05. Jalankan hanya folder ini melalui Collection Runner setelah server dijalankan ulang dengan .env baru. Jika dijalankan saat jam buka, perubahan dan finalisasi akan berhasil (200) sehingga test akan gagal.",
       "item": [
         {
           "name": "01. Login dosen1 untuk uji jam akses",
