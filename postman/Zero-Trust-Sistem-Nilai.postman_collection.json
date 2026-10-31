@@ -20,10 +20,13 @@
                 "exec": [
                   "const body = pm.response.json();",
                   "pm.test(\"Gateway dapat dihubungi (200)\", function () { pm.response.to.have.status(200); });",
-                  "const gw = pm.variables.get(\"gateway_secret\") || \"\";",
-                  "const svc = pm.variables.get(\"service_client_secret\") || \"\";",
-                  "if (gw.match(/^ISI_/) || svc.match(/^ISI_/)) {",
-                  "  console.warn(\"Environment belum lengkap: isi gateway_secret dan service_client_secret dari .env. Request yang membutuhkan secret akan dilewati.\");",
+                  "const gw = pm.environment.get(\"gateway_secret\") || \"\";",
+                  "const svc = pm.environment.get(\"service_client_secret\") || \"\";",
+                  "const missing = [];",
+                  "if (!gw || /^ISI_/.test(gw)) missing.push(\"gateway_secret\");",
+                  "if (!svc || /^ISI_/.test(svc)) missing.push(\"service_client_secret\");",
+                  "if (missing.length) {",
+                  "  console.warn(\"Environment belum lengkap (\" + missing.join(\", \") + \"): isi Current Value dari .env, lalu simpan environment. Request yang memerlukan secret akan dilewati.\");",
                   "}"
                 ]
               }
@@ -766,6 +769,36 @@
           "name": "01. Mahasiswa melihat nilai miliknya",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -799,19 +832,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "Pemfilteran baris dilakukan di Service Nilai berdasarkan userId dari token yang sudah diverifikasi.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -819,6 +850,36 @@
         {
           "name": "02. Dosen1 melihat nilai kelas yang diampu",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -865,19 +926,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "Sekaligus menyimpan ID nilai belum final, ID kelas, NIM, dan kode kelas ke environment agar request berikutnya tidak memakai ID hardcode.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -885,6 +944,36 @@
         {
           "name": "03. Dosen2 melihat nilai kelas yang diampu",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN2-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen2\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen2\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen2\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen2_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen2_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -910,19 +999,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN2-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen2_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen2_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -930,6 +1017,36 @@
         {
           "name": "04. Dosen2 memfilter kelas milik dosen1",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN2-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen2\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen2\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen2\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen2_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen2_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -949,19 +1066,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN2-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen2_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai?class_id={{uji_class_id}}",
             "description": "Policy Engine memeriksa kepemilikan kelas dari database, bukan hanya dari parameter query.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen2_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -969,6 +1084,36 @@
         {
           "name": "05. Admin tidak boleh melihat nilai",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -988,19 +1133,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "Least privilege: admin mengelola akademik, tetapi tidak otomatis boleh membaca nilai.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1008,6 +1151,36 @@
         {
           "name": "06. Dosen pengampu mengubah nilai",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1038,6 +1211,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{uji_grade_id}}",
@@ -1052,14 +1230,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1067,6 +1238,36 @@
         {
           "name": "07. Dosen2 mengubah nilai kelas dosen1",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN2-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen2\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen2\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen2\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen2_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen2_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1091,6 +1292,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN2-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen2_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{uji_grade_id}}",
@@ -1105,14 +1311,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen2_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1120,6 +1319,36 @@
         {
           "name": "08. Nilai yang sudah final tidak dapat diubah",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1144,6 +1373,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{nilai_final_id}}",
@@ -1158,14 +1392,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1173,6 +1400,36 @@
         {
           "name": "09. Mahasiswa tidak boleh mengubah nilai",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1197,6 +1454,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{uji_grade_id}}",
@@ -1211,14 +1473,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1226,6 +1481,36 @@
         {
           "name": "10. Nilai di luar rentang 0-100 ditolak",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1250,6 +1535,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{uji_grade_id}}",
@@ -1264,14 +1554,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1392,6 +1675,36 @@
           "name": "04. Access token mhs1 dengan device mhs2",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -1410,19 +1723,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-MHS2-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "Token sah tidak cukup jika konteks device tidak cocok dengan pemilik token.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1430,6 +1741,36 @@
         {
           "name": "05. Request tanpa header X-Device-ID",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1444,18 +1785,17 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
+              }
+            ],
             "url": "{{baseUrl}}/nilai",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1463,6 +1803,36 @@
         {
           "name": "06. Client memalsukan X-Gateway-Secret",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1490,19 +1860,17 @@
                 "key": "X-Gateway-Secret",
                 "value": "secret-palsu-dari-client",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "Request ini mengirim X-Gateway-Secret palsu. Gateway menimpa header tersebut dengan secret asli sebelum meneruskan ke service, sehingga akses tetap berhasil dan header client tidak berpengaruh.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1510,6 +1878,36 @@
         {
           "name": "07. Endpoint tidak dikenal ditolak (default deny)",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1529,19 +1927,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/laporan/rahasia",
             "description": "Policy Engine memakai daftar route tertutup; endpoint di luar daftar selalu ditolak.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1555,6 +1951,36 @@
         {
           "name": "01. Mahasiswa melihat transkrip sendiri",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1587,19 +2013,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006001",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1607,6 +2031,36 @@
         {
           "name": "02. Mahasiswa melihat transkrip NIM lain",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-MHS1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"mhs1\", password: \"mhs123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk mhs1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk mhs1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"mhs1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"mhs1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1626,19 +2080,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{mhs1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006002",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{mhs1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1646,6 +2098,36 @@
         {
           "name": "03. Admin melihat transkrip NIM mana pun",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1668,19 +2150,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006002",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1688,6 +2168,36 @@
         {
           "name": "04. Dosen tidak boleh melihat transkrip",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1707,19 +2217,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006001",
             "description": "Hak dosen adalah nilai dan finalisasi kelas, bukan membaca transkrip mahasiswa.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1727,6 +2235,36 @@
         {
           "name": "05. NIM tidak ditemukan",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1746,19 +2284,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/999999999",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1772,6 +2308,36 @@
         {
           "name": "01. Token user ditolak untuk sinkronisasi transkrip",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1796,6 +2362,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/sinkron",
@@ -1810,14 +2381,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -1871,7 +2435,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const secret = pm.variables.get(\"service_client_secret\") || \"\";",
+                  "const secret = pm.environment.get(\"service_client_secret\") || \"\";",
                   "if (!secret || secret.match(/^ISI_/)) {",
                   "  pm.collectionVariables.unset(\"service_token\"); pm.environment.unset(\"service_token\");",
                   "  pm.execution.skipRequest();",
@@ -1956,18 +2520,17 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
+              }
+            ],
             "url": "{{baseUrl}}/nilai",
             "description": "Token service hanya boleh dipakai untuk satu tujuan, yaitu sinkronisasi transkrip.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{service_token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2003,6 +2566,11 @@
                 "key": "Content-Type",
                 "value": "application/json",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{service_token}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/sinkron",
@@ -2017,14 +2585,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{service_token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2032,6 +2593,36 @@
         {
           "name": "06. Dosen pengampu memfinalisasi kelas",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2056,19 +2647,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/kelas/{{uji_class_id}}/finalisasi",
             "description": "Service Nilai meminta token service ke gateway, lalu memanggil /transkrip/sinkron melalui gateway. Jika sinkron gagal, finalisasi dibatalkan.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2076,6 +2665,36 @@
         {
           "name": "07. Nilai yang baru final tidak dapat diubah",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2100,6 +2719,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{uji_grade_id}}",
@@ -2114,14 +2738,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2129,6 +2746,36 @@
         {
           "name": "08. Finalisasi ulang ditolak",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2148,19 +2795,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/kelas/{{uji_class_id}}/finalisasi",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2168,6 +2813,36 @@
         {
           "name": "09. Transkrip memuat nilai hasil finalisasi",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2194,19 +2869,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/{{uji_nim}}",
             "description": "Nilai yang diubah pada folder 01 dan difinalisasi pada request 06 harus muncul di transkrip.",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2278,7 +2951,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.variables.get(\"gateway_secret\");",
+                  "const secret = pm.environment.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Secret benar tetapi tanpa token tetap ditolak (401)\", function () { pm.response.to.have.status(401); });",
                   "  pm.test(\"Pesan menyebut Bearer token tidak ada\", function () { pm.expect(body.message).to.include(\"Bearer token tidak ada\"); });",
@@ -2315,7 +2988,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.variables.get(\"gateway_secret\");",
+                  "const secret = pm.environment.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Token palsu ditolak (401)\", function () { pm.response.to.have.status(401); });",
                   "  pm.test(\"Pesan menyebut token tidak valid\", function () { pm.expect(body.message).to.include(\"Token tidak valid\"); });",
@@ -2352,12 +3025,42 @@
           "name": "05. Service Transkrip menolak token user untuk sinkronisasi",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-ADMIN-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"admin\", password: \"admin123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk admin\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk admin\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"admin_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"admin_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.variables.get(\"gateway_secret\");",
+                  "const secret = pm.environment.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Token user ditolak service (403)\", function () { pm.response.to.have.status(403); });",
                   "  pm.test(\"Pesan menyebut jenis token tidak diizinkan\", function () { pm.expect(body.message).to.include(\"Jenis token tidak diizinkan\"); });",
@@ -2380,6 +3083,11 @@
                 "key": "X-Gateway-Secret",
                 "value": "{{gateway_secret}}",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access}}",
+                "type": "text"
               }
             ],
             "url": "{{transkripUrl}}/transkrip/sinkron",
@@ -2394,14 +3102,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{admin_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2441,7 +3142,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.variables.get(\"gateway_secret\");",
+                  "const secret = pm.environment.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Health service dapat diakses dengan secret (200)\", function () { pm.response.to.have.status(200); });",
                   "  pm.test(\"Identitas service sesuai\", function () { pm.expect(body.service).to.eql(\"service-nilai\"); });",
@@ -2546,6 +3247,36 @@
           "name": "02. Ambil nilai yang belum final",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
@@ -2571,19 +3302,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2591,6 +3320,36 @@
         {
           "name": "03. Ubah nilai di luar jam akses",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2615,6 +3374,11 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai/{{uji_grade_id}}",
@@ -2629,14 +3393,7 @@
               }
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2644,6 +3401,36 @@
         {
           "name": "04. Finalisasi di luar jam akses",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const loginUrl = pm.variables.replaceIn(\"{{baseUrl}}\") + \"/auth/login\";",
+                  "pm.sendRequest({",
+                  "  url: loginUrl,",
+                  "  method: \"POST\",",
+                  "  header: { \"Content-Type\": \"application/json\", \"X-Device-ID\": \"DEV-DSN1-01\" },",
+                  "  body: { mode: \"raw\", raw: JSON.stringify({ username: \"dosen1\", password: \"dosen123\" }) }",
+                  "}, function (error, response) {",
+                  "  if (error || !response || response.code !== 200) {",
+                  "    console.error(\"Login otomatis gagal untuk dosen1\", error || (response && response.code));",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  const result = response.json();",
+                  "  if (!result.access_token) {",
+                  "    console.error(\"Login otomatis tidak mengembalikan access_token untuk dosen1\");",
+                  "    pm.execution.skipRequest();",
+                  "    return;",
+                  "  }",
+                  "  pm.environment.set(\"dosen1_access\", result.access_token);",
+                  "  pm.collectionVariables.set(\"dosen1_access\", result.access_token);",
+                  "  pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + result.access_token });",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -2663,19 +3450,17 @@
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dosen1_access}}",
+                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/kelas/{{uji_class_id}}/finalisasi",
             "description": "",
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{dosen1_access}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             }
           },
           "response": []
@@ -2700,18 +3485,8 @@
       "type": "string"
     },
     {
-      "key": "gateway_secret",
-      "value": "ISI_DENGAN_GATEWAY_SECRET_DARI_FILE_ENV",
-      "type": "string"
-    },
-    {
       "key": "service_client_id",
       "value": "service-nilai",
-      "type": "string"
-    },
-    {
-      "key": "service_client_secret",
-      "value": "ISI_DENGAN_SERVICE_CLIENT_SECRET_DARI_FILE_ENV",
       "type": "string"
     },
     {

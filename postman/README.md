@@ -32,7 +32,11 @@ Koleksi tidak memuat secret asli. Dua nilai rahasia diisi manual pada environmen
    - `service_client_secret` dengan nilai `SERVICE_CLIENT_SECRET` dari `.env`.
 4. Biarkan nilai lain apa adanya. `service_client_id` sudah berisi `service-nilai`, dan `nilai_baru` berisi `88`.
 
+   Isi **Current Value** untuk kedua secret lalu simpan environment. Koleksi tidak menyimpan salinan kedua secret pada collection variables agar nilai dari environment tidak tertimpa. Setelah memperbarui koleksi, impor ulang berkas collection dan pilih **Replace** untuk koleksi yang sudah ada; token dan secret tidak perlu disalin ke collection variables.
+
 Nilai token dan ID nilai diisi otomatis oleh test script, jadi tidak perlu copy-paste.
+
+Setiap request yang membutuhkan access token juga melakukan login otomatis tepat sebelum request dikirim. Jadi request seperti **Mahasiswa melihat nilai miliknya** dapat dijalankan sendiri tanpa menjalankan login terlebih dahulu atau menyalin token ke tab Authorization. Skrip login terpisah tetap tersedia untuk menguji alur login dan klaim token.
 
 Koleksi ini bernama **Zero Trust Sistem Nilai**. Jika workspace Postman Anda juga menampilkan koleksi bernama **Demo**, koleksi itu tidak berasal dari repository ini dan tidak akan ikut di-push. Hapus secara lokal jika tidak diperlukan.
 
