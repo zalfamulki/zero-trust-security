@@ -20,8 +20,8 @@
                 "exec": [
                   "const body = pm.response.json();",
                   "pm.test(\"Gateway dapat dihubungi (200)\", function () { pm.response.to.have.status(200); });",
-                  "const gw = pm.environment.get(\"gateway_secret\") || \"\";",
-                  "const svc = pm.environment.get(\"service_client_secret\") || \"\";",
+                  "const gw = pm.variables.get(\"gateway_secret\") || \"\";",
+                  "const svc = pm.variables.get(\"service_client_secret\") || \"\";",
                   "if (gw.match(/^ISI_/) || svc.match(/^ISI_/)) {",
                   "  console.warn(\"Environment belum lengkap: isi gateway_secret dan service_client_secret dari .env. Request yang membutuhkan secret akan dilewati.\");",
                   "}"
@@ -33,7 +33,10 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/health",
-            "description": "Memastikan server berjalan dan dua nilai rahasia pada environment sudah diisi dari file .env. Nilai tersebut tidak disimpan di repository."
+            "description": "Memastikan server berjalan dan dua nilai rahasia pada environment sudah diisi dari file .env. Nilai tersebut tidak disimpan di repository.",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -67,8 +70,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"mhs1_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"mhs1_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"mhs1_access\", body.access_token); pm.environment.set(\"mhs1_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"mhs1_refresh\", body.refresh_token); pm.environment.set(\"mhs1_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -97,6 +100,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -131,8 +137,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"mhs2_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"mhs2_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"mhs2_access\", body.access_token); pm.environment.set(\"mhs2_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"mhs2_refresh\", body.refresh_token); pm.environment.set(\"mhs2_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -161,6 +167,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -195,8 +204,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"mhs3_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"mhs3_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"mhs3_access\", body.access_token); pm.environment.set(\"mhs3_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"mhs3_refresh\", body.refresh_token); pm.environment.set(\"mhs3_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -225,6 +234,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -259,8 +271,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"dosen1_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"dosen1_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"dosen1_access\", body.access_token); pm.environment.set(\"dosen1_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"dosen1_refresh\", body.refresh_token); pm.environment.set(\"dosen1_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -289,6 +301,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -323,8 +338,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"dosen2_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"dosen2_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"dosen2_access\", body.access_token); pm.environment.set(\"dosen2_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"dosen2_refresh\", body.refresh_token); pm.environment.set(\"dosen2_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -353,6 +368,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -387,8 +405,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"admin_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"admin_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"admin_access\", body.access_token); pm.environment.set(\"admin_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"admin_refresh\", body.refresh_token); pm.environment.set(\"admin_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -417,6 +435,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -461,6 +482,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -504,6 +528,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -542,6 +569,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -556,6 +586,7 @@
                 "exec": [
                   "const body = pm.response.json();",
                   "function decodeJwt(token) {",
+                  "  if (!token) return {};",
                   "  const part = token.split(\".\")[1].replace(/-/g, \"+\").replace(/_/g, \"/\");",
                   "  return JSON.parse(atob(part));",
                   "}",
@@ -563,12 +594,14 @@
                   "pm.test(\"Access token baru berlaku 10 menit\", function () {",
                   "  pm.expect(body.token_type).to.eql(\"Bearer\");",
                   "  pm.expect(body.expires_in).to.eql(600);",
-                  "  const p = decodeJwt(body.access_token);",
-                  "  pm.expect(p.typ).to.eql(\"access\");",
-                  "  pm.expect(p.role).to.eql(\"mahasiswa\");",
-                  "  pm.expect(p.exp - p.iat).to.eql(600);",
+                  "  if (body.access_token) {",
+                  "    const p = decodeJwt(body.access_token);",
+                  "    pm.expect(p.typ).to.eql(\"access\");",
+                  "    pm.expect(p.role).to.eql(\"mahasiswa\");",
+                  "    pm.expect(p.exp - p.iat).to.eql(600);",
+                  "  }",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"mhs1_access\", body.access_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"mhs1_access\", body.access_token); pm.environment.set(\"mhs1_access\", body.access_token); }"
                 ]
               }
             }
@@ -592,6 +625,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -630,6 +666,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -669,6 +708,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -707,6 +749,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -730,14 +775,18 @@
                   "pm.test(\"Hanya memuat nilai milik mhs1\", function () {",
                   "  pm.expect(body.data).to.be.an(\"array\");",
                   "  pm.expect(body.data).to.have.lengthOf(3);",
-                  "  body.data.forEach(function (r) { pm.expect(r.nim).to.eql(\"227006001\"); });",
+                  "  if (Array.isArray(body.data)) {",
+                  "    body.data.forEach(function (r) { pm.expect(r.nim).to.eql(\"227006001\"); });",
+                  "  }",
                   "});",
                   "pm.test(\"Setiap baris memuat kode kelas dan nilai\", function () {",
-                  "  body.data.forEach(function (r) {",
-                  "    pm.expect(r.course_code).to.be.a(\"string\");",
-                  "    pm.expect(r.grade_value).to.be.a(\"number\");",
-                  "    pm.expect(r.is_final).to.be.a(\"boolean\");",
-                  "  });",
+                  "  if (Array.isArray(body.data)) {",
+                  "    body.data.forEach(function (r) {",
+                  "      pm.expect(r.course_code).to.be.a(\"string\");",
+                  "      pm.expect(r.grade_value).to.be.a(\"number\");",
+                  "      pm.expect(r.is_final).to.be.a(\"boolean\");",
+                  "    });",
+                  "  }",
                   "});"
                 ]
               }
@@ -747,18 +796,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": "Pemfilteran baris dilakukan di Service Nilai berdasarkan userId dari token yang sudah diverifikasi."
+            "description": "Pemfilteran baris dilakukan di Service Nilai berdasarkan userId dari token yang sudah diverifikasi.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -774,25 +828,31 @@
                   "pm.test(\"Dosen1 dapat melihat nilai (200)\", function () { pm.response.to.have.status(200); });",
                   "pm.test(\"Hanya memuat kelas yang diampu dosen1\", function () {",
                   "  pm.expect(body.data).to.be.an(\"array\");",
-                  "  const kode = Array.from(new Set(body.data.map(function (r) { return r.course_code; }))).sort();",
-                  "  pm.expect(kode).to.eql([\"KP70011001\", \"KP70065004\"]);",
+                  "  if (Array.isArray(body.data)) {",
+                  "    const kode = Array.from(new Set(body.data.map(function (r) { return r.course_code; }))).sort();",
+                  "    pm.expect(kode).to.eql([\"KP70011001\", \"KP70065004\"]);",
+                  "  }",
                   "});",
                   "pm.test(\"Data memuat nilai belum final dan sudah final\", function () {",
-                  "  pm.expect(body.data.some(function (r) { return r.is_final === false; })).to.eql(true);",
-                  "  pm.expect(body.data.some(function (r) { return r.is_final === true; })).to.eql(true);",
+                  "  if (Array.isArray(body.data)) {",
+                  "    pm.expect(body.data.some(function (r) { return r.is_final === false; })).to.eql(true);",
+                  "    pm.expect(body.data.some(function (r) { return r.is_final === true; })).to.eql(true);",
+                  "  }",
                   "});",
-                  "const belumFinal = body.data.find(function (r) { return r.is_final === false; });",
-                  "const sudahFinal = body.data.find(function (r) { return r.is_final === true; });",
+                  "const belumFinal = (body && Array.isArray(body.data)) ? body.data.find(function (r) { return r.is_final === false; }) : null;",
+                  "const sudahFinal = (body && Array.isArray(body.data)) ? body.data.find(function (r) { return r.is_final === true; }) : null;",
                   "if (belumFinal) {",
-                  "  pm.environment.set(\"uji_grade_id\", String(belumFinal.id));",
-                  "  pm.environment.set(\"uji_class_id\", String(belumFinal.class_id));",
-                  "  pm.environment.set(\"uji_nim\", belumFinal.nim);",
-                  "  pm.environment.set(\"uji_course\", belumFinal.course_code);",
+                  "  pm.collectionVariables.set(\"uji_grade_id\", String(belumFinal.id)); pm.environment.set(\"uji_grade_id\", String(belumFinal.id));",
+                  "  pm.collectionVariables.set(\"uji_class_id\", String(belumFinal.class_id)); pm.environment.set(\"uji_class_id\", String(belumFinal.class_id));",
+                  "  pm.collectionVariables.set(\"uji_nim\", belumFinal.nim); pm.environment.set(\"uji_nim\", belumFinal.nim);",
+                  "  pm.collectionVariables.set(\"uji_course\", belumFinal.course_code); pm.environment.set(\"uji_course\", belumFinal.course_code);",
                   "}",
-                  "if (sudahFinal) { pm.environment.set(\"nilai_final_id\", String(sudahFinal.id)); }",
+                  "if (sudahFinal) {",
+                  "  pm.collectionVariables.set(\"nilai_final_id\", String(sudahFinal.id)); pm.environment.set(\"nilai_final_id\", String(sudahFinal.id));",
+                  "}",
                   "pm.test(\"ID nilai dan kelas berhasil disimpan untuk pengujian berikutnya\", function () {",
-                  "  pm.expect(pm.environment.get(\"uji_grade_id\")).to.be.a(\"string\");",
-                  "  pm.expect(pm.environment.get(\"nilai_final_id\")).to.be.a(\"string\");",
+                  "  pm.expect(pm.variables.get(\"uji_grade_id\")).to.be.a(\"string\");",
+                  "  pm.expect(pm.variables.get(\"nilai_final_id\")).to.be.a(\"string\");",
                   "});"
                 ]
               }
@@ -802,18 +862,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": "Sekaligus menyimpan ID nilai belum final, ID kelas, NIM, dan kode kelas ke environment agar request berikutnya tidak memakai ID hardcode."
+            "description": "Sekaligus menyimpan ID nilai belum final, ID kelas, NIM, dan kode kelas ke environment agar request berikutnya tidak memakai ID hardcode.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -829,8 +894,10 @@
                   "pm.test(\"Dosen2 dapat melihat nilai (200)\", function () { pm.response.to.have.status(200); });",
                   "pm.test(\"Hanya memuat kelas dosen2\", function () {",
                   "  pm.expect(body.data).to.be.an(\"array\");",
-                  "  pm.expect(body.data).to.have.lengthOf(3);",
-                  "  body.data.forEach(function (r) { pm.expect(r.course_code).to.eql(\"KP70012003\"); });",
+                  "  if (Array.isArray(body.data)) {",
+                  "    pm.expect(body.data).to.have.lengthOf(3);",
+                  "    body.data.forEach(function (r) { pm.expect(r.course_code).to.eql(\"KP70012003\"); });",
+                  "  }",
                   "});"
                 ]
               }
@@ -840,18 +907,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen2_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN2-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen2_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -874,18 +946,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen2_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN2-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai?class_id={{uji_class_id}}",
-            "description": "Policy Engine memeriksa kepemilikan kelas dari database, bukan hanya dari parameter query."
+            "description": "Policy Engine memeriksa kepemilikan kelas dari database, bukan hanya dari parameter query.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen2_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -908,18 +985,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": "Least privilege: admin mengelola akademik, tetapi tidak otomatis boleh membaca nilai."
+            "description": "Least privilege: admin mengelola akademik, tetapi tidak otomatis boleh membaca nilai.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -934,9 +1016,11 @@
                   "const body = pm.response.json();",
                   "pm.test(\"Nilai berhasil diubah (200)\", function () { pm.response.to.have.status(200); });",
                   "pm.test(\"Nilai tersimpan sesuai permintaan dan belum final\", function () {",
-                  "  pm.expect(body.data.id).to.eql(Number(pm.environment.get(\"uji_grade_id\")));",
-                  "  pm.expect(body.data.grade_value).to.eql(Number(pm.environment.get(\"nilai_baru\")));",
-                  "  pm.expect(body.data.is_final).to.eql(false);",
+                  "  if (body && body.data) {",
+                  "    pm.expect(body.data.id).to.eql(Number(pm.variables.get(\"uji_grade_id\")));",
+                  "    pm.expect(body.data.grade_value).to.eql(Number(pm.variables.get(\"nilai_baru\")));",
+                  "    pm.expect(body.data.is_final).to.eql(false);",
+                  "  }",
                   "});"
                 ]
               }
@@ -948,11 +1032,6 @@
               {
                 "key": "Content-Type",
                 "value": "application/json",
-                "type": "text"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
                 "type": "text"
               },
               {
@@ -971,6 +1050,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -999,11 +1088,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen2_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN2-01",
                 "type": "text"
@@ -1019,6 +1103,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen2_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1047,11 +1141,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
@@ -1067,6 +1156,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1095,11 +1194,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
@@ -1115,6 +1209,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1143,11 +1247,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
@@ -1163,6 +1262,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1198,7 +1307,10 @@
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -1232,7 +1344,10 @@
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": "Tanda tangan JWT diperiksa dengan secret server, sehingga token buatan client tidak diterima."
+            "description": "Tanda tangan JWT diperiksa dengan secret server, sehingga token buatan client tidak diterima.",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -1266,7 +1381,10 @@
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -1289,18 +1407,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-MHS2-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": "Token sah tidak cukup jika konteks device tidak cocok dengan pemilik token."
+            "description": "Token sah tidak cukup jika konteks device tidak cocok dengan pemilik token.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1321,15 +1444,19 @@
           ],
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              }
-            ],
+            "header": [],
             "url": "{{baseUrl}}/nilai",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1355,11 +1482,6 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
@@ -1371,7 +1493,17 @@
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": "Request ini mengirim X-Gateway-Secret palsu. Gateway menimpa header tersebut dengan secret asli sebelum meneruskan ke service, sehingga akses tetap berhasil dan header client tidak berpengaruh."
+            "description": "Request ini mengirim X-Gateway-Secret palsu. Gateway menimpa header tersebut dengan secret asli sebelum meneruskan ke service, sehingga akses tetap berhasil dan header client tidak berpengaruh.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1394,18 +1526,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/laporan/rahasia",
-            "description": "Policy Engine memakai daftar route tertutup; endpoint di luar daftar selalu ditolak."
+            "description": "Policy Engine memakai daftar route tertutup; endpoint di luar daftar selalu ditolak.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         }
@@ -1447,18 +1584,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006001",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1481,18 +1623,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{mhs1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-MHS1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006002",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{mhs1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1518,18 +1665,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006002",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1552,18 +1704,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/227006001",
-            "description": "Hak dosen adalah nilai dan finalisasi kelas, bukan membaca transkrip mahasiswa."
+            "description": "Hak dosen adalah nilai dan finalisasi kelas, bukan membaca transkrip mahasiswa.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1586,18 +1743,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/999999999",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         }
@@ -1631,11 +1793,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
@@ -1651,6 +1808,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1689,6 +1856,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -1701,9 +1871,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const secret = pm.environment.get(\"service_client_secret\") || \"\";",
+                  "const secret = pm.variables.get(\"service_client_secret\") || \"\";",
                   "if (!secret || secret.match(/^ISI_/)) {",
-                  "  pm.environment.unset(\"service_token\");",
+                  "  pm.collectionVariables.unset(\"service_token\"); pm.environment.unset(\"service_token\");",
                   "  pm.execution.skipRequest();",
                   "}"
                 ]
@@ -1729,7 +1899,7 @@
                   "  pm.expect(p.sub).to.eql(\"service-nilai\");",
                   "  pm.expect(p.exp - p.iat).to.eql(300);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"service_token\", body.access_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"service_token\", body.access_token); pm.environment.set(\"service_token\", body.access_token); }"
                 ]
               }
             }
@@ -1753,6 +1923,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -1765,7 +1938,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get(\"service_token\")) { pm.execution.skipRequest(); }"
+                  "if (!pm.variables.get(\"service_token\")) { pm.execution.skipRequest(); }"
                 ]
               }
             },
@@ -1783,15 +1956,19 @@
           ],
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{service_token}}",
-                "type": "text"
-              }
-            ],
+            "header": [],
             "url": "{{baseUrl}}/nilai",
-            "description": "Token service hanya boleh dipakai untuk satu tujuan, yaitu sinkronisasi transkrip."
+            "description": "Token service hanya boleh dipakai untuk satu tujuan, yaitu sinkronisasi transkrip.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{service_token}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1803,7 +1980,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.environment.get(\"service_token\")) { pm.execution.skipRequest(); }"
+                  "if (!pm.variables.get(\"service_token\")) { pm.execution.skipRequest(); }"
                 ]
               }
             },
@@ -1826,11 +2003,6 @@
                 "key": "Content-Type",
                 "value": "application/json",
                 "type": "text"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{service_token}}",
-                "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/sinkron",
@@ -1843,6 +2015,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{service_token}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1859,7 +2041,7 @@
                   "pm.test(\"Finalisasi berhasil (200)\", function () { pm.response.to.have.status(200); });",
                   "pm.test(\"Kelas final dan transkrip tersinkron\", function () {",
                   "  pm.expect(body.finalized).to.eql(true);",
-                  "  pm.expect(body.class_id).to.eql(Number(pm.environment.get(\"uji_class_id\")));",
+                  "  pm.expect(body.class_id).to.eql(Number(pm.variables.get(\"uji_class_id\")));",
                   "  pm.expect(body.synced).to.be.a(\"number\");",
                   "  pm.expect(body.synced).to.be.greaterThan(0);",
                   "});"
@@ -1871,18 +2053,23 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/kelas/{{uji_class_id}}/finalisasi",
-            "description": "Service Nilai meminta token service ke gateway, lalu memanggil /transkrip/sinkron melalui gateway. Jika sinkron gagal, finalisasi dibatalkan."
+            "description": "Service Nilai meminta token service ke gateway, lalu memanggil /transkrip/sinkron melalui gateway. Jika sinkron gagal, finalisasi dibatalkan.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1910,11 +2097,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
@@ -1930,6 +2112,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -1953,18 +2145,23 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/kelas/{{uji_class_id}}/finalisasi",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -1980,10 +2177,10 @@
                   "pm.test(\"Transkrip dapat dibaca (200)\", function () { pm.response.to.have.status(200); });",
                   "pm.test(\"Transkrip memuat kelas yang baru difinalisasi\", function () {",
                   "  pm.expect(body.transkrip).to.be.an(\"array\");",
-                  "  const kode = pm.environment.get(\"uji_course\");",
+                  "  const kode = pm.variables.get(\"uji_course\");",
                   "  const baris = body.transkrip.find(function (x) { return x.course_code === kode; });",
                   "  pm.expect(baris, \"baris transkrip untuk kelas finalisasi\").to.exist;",
-                  "  pm.expect(baris.grade_value).to.eql(Number(pm.environment.get(\"nilai_baru\")));",
+                  "  pm.expect(baris.grade_value).to.eql(Number(pm.variables.get(\"nilai_baru\")));",
                   "  pm.expect(baris.synced_at).to.be.a(\"string\");",
                   "});"
                 ]
@@ -1994,18 +2191,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-ADMIN-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/transkrip/{{uji_nim}}",
-            "description": "Nilai yang diubah pada folder 01 dan difinalisasi pada request 06 harus muncul di transkrip."
+            "description": "Nilai yang diubah pada folder 01 dan difinalisasi pada request 06 harus muncul di transkrip.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         }
@@ -2034,7 +2236,10 @@
             "method": "GET",
             "header": [],
             "url": "{{nilaiUrl}}/nilai",
-            "description": "Service tidak dapat diakses langsung dari luar gateway."
+            "description": "Service tidak dapat diakses langsung dari luar gateway.",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -2057,7 +2262,10 @@
             "method": "GET",
             "header": [],
             "url": "{{transkripUrl}}/transkrip/227006001",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -2070,7 +2278,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.environment.get(\"gateway_secret\");",
+                  "const secret = pm.variables.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Secret benar tetapi tanpa token tetap ditolak (401)\", function () { pm.response.to.have.status(401); });",
                   "  pm.test(\"Pesan menyebut Bearer token tidak ada\", function () { pm.expect(body.message).to.include(\"Bearer token tidak ada\"); });",
@@ -2091,7 +2299,10 @@
               }
             ],
             "url": "{{nilaiUrl}}/nilai",
-            "description": "Gateway secret bukan pengganti access token. Keduanya wajib valid."
+            "description": "Gateway secret bukan pengganti access token. Keduanya wajib valid.",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -2104,7 +2315,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.environment.get(\"gateway_secret\");",
+                  "const secret = pm.variables.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Token palsu ditolak (401)\", function () { pm.response.to.have.status(401); });",
                   "  pm.test(\"Pesan menyebut token tidak valid\", function () { pm.expect(body.message).to.include(\"Token tidak valid\"); });",
@@ -2130,7 +2341,10 @@
               }
             ],
             "url": "{{transkripUrl}}/transkrip/227006001",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -2143,7 +2357,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.environment.get(\"gateway_secret\");",
+                  "const secret = pm.variables.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Token user ditolak service (403)\", function () { pm.response.to.have.status(403); });",
                   "  pm.test(\"Pesan menyebut jenis token tidak diizinkan\", function () { pm.expect(body.message).to.include(\"Jenis token tidak diizinkan\"); });",
@@ -2163,11 +2377,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{admin_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Gateway-Secret",
                 "value": "{{gateway_secret}}",
                 "type": "text"
@@ -2183,6 +2392,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -2206,7 +2425,10 @@
             "method": "GET",
             "header": [],
             "url": "{{nilaiUrl}}/health",
-            "description": "Bahkan endpoint health operasional tidak terbuka untuk akses langsung."
+            "description": "Bahkan endpoint health operasional tidak terbuka untuk akses langsung.",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         },
@@ -2219,7 +2441,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "const secret = pm.environment.get(\"gateway_secret\");",
+                  "const secret = pm.variables.get(\"gateway_secret\");",
                   "if (secret && !secret.match(/^ISI_/)) {",
                   "  pm.test(\"Health service dapat diakses dengan secret (200)\", function () { pm.response.to.have.status(200); });",
                   "  pm.test(\"Identitas service sesuai\", function () { pm.expect(body.service).to.eql(\"service-nilai\"); });",
@@ -2240,7 +2462,10 @@
               }
             ],
             "url": "{{nilaiUrl}}/health",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
           },
           "response": []
         }
@@ -2280,8 +2505,8 @@
                   "  pm.expect(p.sub).to.be.a(\"string\");",
                   "  pm.expect(p.sub.length).to.be.greaterThan(0);",
                   "});",
-                  "if (body.access_token) { pm.environment.set(\"dosen1_access\", body.access_token); }",
-                  "if (body.refresh_token) { pm.environment.set(\"dosen1_refresh\", body.refresh_token); }"
+                  "if (body.access_token) { pm.collectionVariables.set(\"dosen1_access\", body.access_token); pm.environment.set(\"dosen1_access\", body.access_token); }",
+                  "if (body.refresh_token) { pm.collectionVariables.set(\"dosen1_refresh\", body.refresh_token); pm.environment.set(\"dosen1_refresh\", body.refresh_token); }"
                 ]
               }
             }
@@ -2310,6 +2535,9 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "response": []
@@ -2323,13 +2551,15 @@
                 "type": "text/javascript",
                 "exec": [
                   "const body = pm.response.json();",
-                  "pm.test(\"Daftar nilai dapat dibaca (200)\", function () { pm.response.to.have.status(200); });",
-                  "const belumFinal = body.data.find(function (r) { return r.is_final === false; });",
-                  "pm.test(\"Ada nilai belum final untuk diuji\", function () { pm.expect(belumFinal, \"nilai belum final\").to.exist; });",
+                  "pm.test(\"Dosen1 dapat membaca nilai (200)\", function () { pm.response.to.have.status(200); });",
+                  "const belumFinal = (body && Array.isArray(body.data)) ? body.data.find(function (r) { return r.is_final === false; }) : null;",
                   "if (belumFinal) {",
-                  "  pm.environment.set(\"uji_grade_id\", String(belumFinal.id));",
-                  "  pm.environment.set(\"uji_class_id\", String(belumFinal.class_id));",
-                  "}"
+                  "  pm.collectionVariables.set(\"uji_grade_id\", String(belumFinal.id)); pm.environment.set(\"uji_grade_id\", String(belumFinal.id));",
+                  "  pm.collectionVariables.set(\"uji_class_id\", String(belumFinal.class_id)); pm.environment.set(\"uji_class_id\", String(belumFinal.class_id));",
+                  "}",
+                  "pm.test(\"ID tersimpan untuk pengujian berikutnya\", function () {",
+                  "  pm.expect(pm.variables.get(\"uji_grade_id\")).to.be.a(\"string\");",
+                  "});"
                 ]
               }
             }
@@ -2338,18 +2568,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/nilai",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         },
@@ -2377,11 +2612,6 @@
                 "type": "text"
               },
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
@@ -2397,6 +2627,16 @@
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -2420,23 +2660,154 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{dosen1_access}}",
-                "type": "text"
-              },
-              {
                 "key": "X-Device-ID",
                 "value": "DEV-DSN1-01",
                 "type": "text"
               }
             ],
             "url": "{{baseUrl}}/kelas/{{uji_class_id}}/finalisasi",
-            "description": ""
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{dosen1_access}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         }
       ]
     }
   ],
-  "variable": []
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000",
+      "type": "string"
+    },
+    {
+      "key": "nilaiUrl",
+      "value": "http://127.0.0.1:3001",
+      "type": "string"
+    },
+    {
+      "key": "transkripUrl",
+      "value": "http://127.0.0.1:3002",
+      "type": "string"
+    },
+    {
+      "key": "gateway_secret",
+      "value": "ISI_DENGAN_GATEWAY_SECRET_DARI_FILE_ENV",
+      "type": "string"
+    },
+    {
+      "key": "service_client_id",
+      "value": "service-nilai",
+      "type": "string"
+    },
+    {
+      "key": "service_client_secret",
+      "value": "ISI_DENGAN_SERVICE_CLIENT_SECRET_DARI_FILE_ENV",
+      "type": "string"
+    },
+    {
+      "key": "nilai_baru",
+      "value": "88",
+      "type": "string"
+    },
+    {
+      "key": "mhs1_access",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mhs1_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mhs2_access",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mhs2_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mhs3_access",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "mhs3_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dosen1_access",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dosen1_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dosen2_access",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dosen2_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_access",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "service_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uji_grade_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uji_class_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uji_nim",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "uji_course",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "nilai_final_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
 }

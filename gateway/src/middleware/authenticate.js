@@ -10,11 +10,13 @@ function authenticate(config) {
     req.identity = null;
     req.authError = null;
 
-    const header = req.get('Authorization');
-    if (!header) {
+    const rawHeader = req.get('Authorization');
+    if (!rawHeader) {
       req.authError = 'access token tidak ada';
       return next();
     }
+    // Jika terdapat header duplikat (misal dari Auth tab + Headers tab di client), ambil token pertama
+    const header = rawHeader.split(',')[0].trim();
     const m = /^Bearer\s+(\S+)$/i.exec(header);
     if (!m) {
       req.authError = 'format header Authorization salah';
