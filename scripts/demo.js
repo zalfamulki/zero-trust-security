@@ -48,7 +48,7 @@ function preflight(mode) {
     return false;
   }
 
-  let seeded = false;
+  let seeded;
   let siap = false;
   try {
     seeded = Boolean(

@@ -107,7 +107,7 @@ curl -s http://127.0.0.1:3001/nilai -H "X-Gateway-Secret: <GATEWAY_SECRET dari .
 
 Alternatif tanpa mengetik curl: `npm run demo` menjalankan seluruh skenario berhasil dan gagal beserta hasilnya (berguna untuk video).
 
-## Pengujian API dengan Postman
+## Tutorial pengujian API dengan Postman
 
 Koleksi Postman siap impor tersedia di folder `postman/`:
 
@@ -115,15 +115,74 @@ Koleksi Postman siap impor tersedia di folder `postman/`:
 - `postman/Zero-Trust-Lokal.postman_environment.json` — URL lokal, token, ID dinamis, dan placeholder secret.
 - `postman/README.md` — langkah impor, urutan pengujian, dan penanganan masalah.
 
-Langkah singkat:
+### Persiapan
 
-1. Hentikan server, jalankan `npm run seed`, lalu `npm start`.
-2. Impor kedua berkas JSON ke Postman dan pilih environment **Zero Trust Lokal**.
-3. Isi `gateway_secret` dan `service_client_secret` pada environment dari `.env`. Kedua nilai tidak disimpan di repository.
-4. Jalankan Collection Runner untuk folder `00` sampai `05`. Folder `06` (jam akses) dijalankan terpisah saat jendela jam ditutup.
-5. Setelah selesai, hentikan server, `npm run seed`, lalu `npm start` untuk mengembalikan data demo.
+1. Pastikan dependency dan konfigurasi sudah siap:
+
+   ```bash
+   npm install
+   npm run setup
+   npm run seed
+   npm start
+   ```
+
+2. Pastikan tiga service aktif:
+   - Gateway: `http://127.0.0.1:3000`
+   - Service Nilai: `http://127.0.0.1:3001`
+   - Service Transkrip: `http://127.0.0.1:3002`
+3. Buka Postman, pilih **Import**, lalu impor:
+   - `postman/Zero-Trust-Sistem-Nilai.postman_collection.json`
+   - `postman/Zero-Trust-Lokal.postman_environment.json`
+4. Pilih environment **Zero Trust Lokal** pada menu environment di kanan atas.
+5. Buka pengaturan environment dan isi:
+   - `gateway_secret` dengan nilai `GATEWAY_SECRET` dari `.env`.
+   - `service_client_secret` dengan nilai `SERVICE_CLIENT_SECRET` dari `.env`.
+6. Jangan mengubah `baseUrl`, `service_client_id`, atau device ID demo. Token akses dan ID nilai akan diisi otomatis oleh script Postman.
+
+### Urutan menjalankan collection
+
+Collection berisi **56 request dalam 7 folder**:
+
+| Folder | Jumlah | Penggunaan |
+|---|---:|---|
+| `00` — Autentikasi dan Token | 14 | Login, JWT, refresh, logout, dan token palsu |
+| `01` — Nilai dan Kepemilikan Data | 10 | Hak mahasiswa/dosen, kepemilikan kelas, nilai final, validasi nilai |
+| `02` — Konteks Device dan Token | 7 | Token, device, header, dan endpoint tidak dikenal |
+| `03` — Transkrip | 5 | NIM sendiri, NIM lain, admin, dosen, dan NIM tidak ada |
+| `04` — Token Service dan Finalisasi | 9 | Token service, finalisasi, sinkronisasi, dan penguncian nilai |
+| `05` — Akses Langsung ke Service | 7 | Gateway secret, token, health check, dan assume breach |
+| `06` — Jam Akses | 4 | Perubahan dan finalisasi di luar jam akses |
+
+Untuk pengujian normal, jalankan folder `00` sampai `05` secara berurutan melalui **Collection Runner**. Folder tersebut menghasilkan **52 request dan 115 assertion**. Semua harus berstatus hijau. Folder `06` dijalankan terpisah setelah konfigurasi jam akses ditutup seperti pada bagian berikutnya.
 
 Token dan ID nilai diisi otomatis oleh test script. Rincian lengkap ada di `postman/README.md`.
+
+### Pengujian jam akses
+
+Folder `06` harus dijalankan ketika jendela akses tertutup:
+
+1. Hentikan server.
+2. Ubah `.env` menjadi:
+
+   ```ini
+   ACCESS_START=00:00
+   ACCESS_END=00:00
+   ```
+
+3. Jalankan kembali `npm start`.
+4. Pada Collection Runner, jalankan hanya folder `06 — Jam Akses`.
+5. Pastikan perubahan dan finalisasi nilai ditolak dengan HTTP `403`.
+6. Setelah selesai, kembalikan `.env` ke `ACCESS_START=07:00` dan `ACCESS_END=21:00`, lalu reset database dengan `npm run seed`.
+
+### Menjalankan dengan Newman
+
+Environment yang ada di repository hanya berisi placeholder secret. Untuk Newman, buat salinan environment lokal, isi secret asli, lalu jalankan:
+
+```bash
+npx newman run postman/Zero-Trust-Sistem-Nilai.postman_collection.json -e postman/Zero-Trust-Lokal.local.json
+```
+
+Berkas dengan akhiran `.local.json` diabaikan Git dan tidak boleh diunggah karena berisi secret.
 
 ## Pengujian
 
@@ -132,6 +191,24 @@ npm test
 ```
 
 27 tes otomatis: 5 tes unit (jam akses, zona waktu, pencocokan route) dan 22 tes integrasi yang menjalankan tiga proses nyata pada port 13000–13002 dengan database sementara. Tes mencakup seluruh matriks pengujian tugas (login berhasil/gagal, device salah, token tanpa/palsu/kedaluwarsa, refresh/logout, hak akses per role dan kepemilikan data, nilai final, jam akses, token service, finalisasi + sinkron lewat gateway, akses langsung ke service, secret benar tanpa token, dan isi audit log).
+
+### Linting
+
+```bash
+npm run lint
+```
+
+Perintah ini menjalankan ESLint pada kode gateway, kedua service, modul bersama, script operasional, dan test. Linting membantu menemukan kesalahan JavaScript seperti variabel yang tidak digunakan, referensi yang tidak didefinisikan, dan masalah struktur kode sebelum perubahan dijalankan atau dipush.
+
+### Validasi data seed
+
+Saat gateway atau service dijalankan, `assertSeeded()` memeriksa bahwa database memiliki tabel yang diperlukan dan data minimum untuk demo: minimal 1 admin, 2 dosen, 3 mahasiswa, 2 kelas, device untuk setiap user, serta dosen pengampu yang valid. Jika pemeriksaan gagal, jalankan:
+
+```bash
+npm run seed
+```
+
+Perintah tersebut mereset database demo, sehingga server harus dihentikan terlebih dahulu.
 
 ### Sebelum demo
 
@@ -181,5 +258,6 @@ npm run audit -- 50    # 50 baris terakhir
 - Service memeriksa ulang kepemilikan data dari database dan jam akses (pertahanan berlapis), tidak hanya mengandalkan keputusan gateway.
 - Gateway menimpa `X-Gateway-Secret` dari client sehingga nilai kiriman client tidak pernah dipercaya.
 - Finalisasi bersifat konsisten: jika sinkronisasi ke transkrip gagal, finalisasi dibatalkan (status final dikembalikan) sehingga nilai dan transkrip tidak berselisih. Sinkronisasi hanya diterima untuk nilai yang sudah final dan sama dengan data di database.
+- Konsistensi finalisasi menggunakan pola kompensasi lintas service: Service Nilai menandai nilai final, memanggil sinkronisasi melalui gateway, lalu mengembalikan status menjadi belum final jika sinkronisasi gagal. Ini menjaga agar kegagalan sinkronisasi tidak meninggalkan nilai final tanpa transkrip, sementara operasi atomik lintas tiga proses belum digunakan.
 - Pesan error login tidak membedakan "user tidak ada" dan "password salah". Refresh token disimpan sebagai hash.
 - Frontend tidak dibuat karena tidak diwajibkan; pengujian lewat curl/Postman atau `npm run demo`.
